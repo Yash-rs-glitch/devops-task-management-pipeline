@@ -1,0 +1,5 @@
+- name: Deploy Task Management API
+  hosts: webservers
+
+  roles:
+    - task_app

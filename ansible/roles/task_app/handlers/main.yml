@@ -1,0 +1,6 @@
+- name: Restart task application
+  systemd:
+    name: task-management-api
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

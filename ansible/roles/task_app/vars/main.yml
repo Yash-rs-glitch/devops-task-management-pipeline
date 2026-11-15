@@ -1,0 +1,4 @@
+app_name: task-management-api
+app_user: yash
+app_dir: /opt/task-management-api
+app_port: 5000
