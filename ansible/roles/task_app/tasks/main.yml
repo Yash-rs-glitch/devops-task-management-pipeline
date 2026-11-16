@@ -1,53 +1,28 @@
-- name: Install Python
-  apt:
-    name:
-      - python3
-      - python3-venv
-    state: present
-    update_cache: yes
-
 - name: Create application directory
   file:
-    path: "{{ app_dir }}"
+    path: /tmp/task-management-api
     state: directory
-    owner: "{{ app_user }}"
     mode: '0755'
 
 - name: Copy application files
   copy:
     src: "{{ playbook_dir }}/../{{ item }}"
-    dest: "{{ app_dir }}/{{ item }}"
-    owner: "{{ app_user }}"
+    dest: "/tmp/task-management-api/{{ item }}"
     mode: '0644'
   loop:
     - app.py
     - requirements.txt
-  notify: Restart task application
 
-- name: Create Python virtual environment
-  command: python3 -m venv {{ app_dir }}/venv
-  args:
-    creates: "{{ app_dir }}/venv/bin/python"
+- name: Verify application files
+  stat:
+    path: "/tmp/task-management-api/{{ item }}"
+  register: app_files
+  loop:
+    - app.py
+    - requirements.txt
 
-- name: Install application dependencies
-  pip:
-    requirements: "{{ app_dir }}/requirements.txt"
-    virtualenv: "{{ app_dir }}/venv"
-
-- name: Create application service
-  copy:
-    dest: /etc/systemd/system/task-management-api.service
-    content: |
-      [Unit]
-      Description=Task Management Flask API
-      After=network.target
-
-      [Service]
-      User={{ app_user }}
-      WorkingDirectory={{ app_dir }}
-      ExecStart={{ app_dir }}/venv/bin/python app.py
-      Restart=always
-
-      [Install]
-      WantedBy=multi-user.target
-  notify: Restart task application
+- name: Confirm deployment files
+  assert:
+    that:
+      - item.stat.exists
+  loop: "{{ app_files.results }}"
